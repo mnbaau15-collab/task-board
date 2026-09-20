@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'tasks'
+// localStorage はパスではなくオリジン単位で共有されるため、他アプリと衝突しないキーにする
+const STORAGE_KEY = 'task-board:tasks'
+const LEGACY_KEY = 'tasks'
 
-const loadTasks = () => {
+const readTasks = (key) => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : []
+    const parsed = JSON.parse(localStorage.getItem(key))
+    return Array.isArray(parsed)
+      ? parsed.filter((t) => t && typeof t.id === 'string' && typeof t.title === 'string')
+      : null
   } catch {
-    return []
+    return null
   }
 }
+
+const loadTasks = () => readTasks(STORAGE_KEY) ?? readTasks(LEGACY_KEY) ?? []
 
 export default function App() {
   const [tasks, setTasks] = useState(loadTasks)
